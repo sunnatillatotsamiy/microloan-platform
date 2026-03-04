@@ -34,7 +34,9 @@ services:
       - .env
 
   nginx:
-    image: freddiestephenson/microloan-platform-nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     container_name: microloan_nginx
     restart: always
     ports:
