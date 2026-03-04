@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if user.role == 'manager' %}
+    <h2>All Loan Applications</h2>
+{% else %}
+    <h2>My Loans</h2>
+{% endif %}
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Duration</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for loan in loans %}
+        <tr>
+            <td>{{ loan.id }}</td>
+            <td>{{ loan.loan_product.name }}</td>
+            <td>{{ loan.amount }}</td>
+            <td>{{ loan.duration_months }}</td>
+            <td>
+                {% if loan.status == 'approved' %}
+                    <span class="badge bg-success">Approved</span>
+                {% elif loan.status == 'rejected' %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

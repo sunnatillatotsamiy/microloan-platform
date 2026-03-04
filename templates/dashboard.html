@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<p>Welcome, {{ user.username }}</p>
+
+<a href="/apply-loan/" class="btn btn-primary">Apply for Loan</a>
+<a href="/my-loans/" class="btn btn-secondary">My Loans</a>
+{% endblock %}

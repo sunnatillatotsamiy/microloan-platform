@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Apply for Loan</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label>Loan Product</label>
+        <select name="loan_product" class="form-control" required>
+            {% for product in products %}
+                <option value="{{ product.id }}">
+                    {{ product.name }} ({{ product.interest_rate }}%)
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Amount</label>
+        <input type="number" name="amount" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Duration (months)</label>
+        <input type="number" name="duration" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Monthly Income</label>
+        <input type="number" name="income" class="form-control" required>
+    </div>
+
+    <button class="btn btn-primary">Submit Application</button>
+</form>
+{% endblock %}
