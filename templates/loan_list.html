@@ -1,59 +1,160 @@
 {% extends 'base.html' %}
+{% block title %}{% if user.role == 'manager' %}All Loan Applications{% else %}My Loans{% endif %} — MicroLoan{% endblock %}
+
+{% block extra_head %}
+<style>
+    .table-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .table-card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        background: var(--surface);
+    }
+    .table-card-header h5 {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .table-card-header h5 i { color: var(--accent2); }
+    .table-responsive { border-radius: 0 0 16px 16px; }
+    .loan-id { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+    .applicant-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(99,91,255,0.08);
+        color: var(--accent2);
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 0.2em 0.65em;
+        border-radius: 6px;
+    }
+    .product-name { font-weight: 500; color: var(--text); font-size: 0.88rem; }
+    .amount-cell { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--primary); font-size: 0.92rem; }
+    .duration-cell { color: var(--muted); font-size: 0.85rem; }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-icon {
+        width: 72px; height: 72px;
+        background: rgba(99,91,255,0.07);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem;
+        color: var(--accent2);
+        margin: 0 auto 1.25rem;
+    }
+    .empty-state h5 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; }
+    .empty-state p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    {% if user.role == 'manager' %}
-        <h2>All Loan Applications</h2>
-    {% else %}
-        <h2>My Loans</h2>
-    {% endif %}
-
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>{% if user.role == 'manager' %}Applicant{% endif %}</th>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Duration</th>
-                <th>Status</th>
-                {% if user.role == 'manager' %}<th>Action</th>{% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for loan in loans %}
-            <tr>
-                <td>{{ loan.id }}</td>
-                <td>{% if user.role == 'manager' %}{{ loan.customer.username }}{% endif %}</td>
-                <td>{{ loan.loan_product.name }}</td>
-                <td>${{ loan.amount }}</td>
-                <td>{{ loan.duration_months }} months</td>
-                <td>
-                    {% if loan.status == 'approved' %}
-                        <span class="badge bg-success">Approved</span>
-                    {% elif loan.status == 'rejected' %}
-                        <span class="badge bg-danger">Rejected</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">Pending</span>
-                    {% endif %}
-                </td>
-                {% if user.role == 'manager' %}
-                <td>
-                    <a href="/loans/review/{{ loan.id }}/" class="btn btn-sm btn-primary">Review</a>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    {% if not user.role == 'manager' %}
-    <a href="/apply-loan/" class="btn btn-primary">Apply for New Loan</a>
+<div class="page-header">
+    <div>
+        <h2>{% if user.role == 'manager' %}All Applications{% else %}My Loans{% endif %}</h2>
+        <div class="subtitle">{% if user.role == 'manager' %}Review and manage all submitted loan applications.{% else %}Track the status of your loan applications.{% endif %}</div>
+    </div>
+    {% if user.role != 'manager' %}
+        <a href="/apply-loan/" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>New Application
+        </a>
     {% endif %}
 </div>
+
+<div class="table-card">
+    <div class="table-card-header">
+        <h5><i class="bi bi-file-earmark-text"></i> {% if user.role == 'manager' %}All Loan Applications{% else %}Your Applications{% endif %}</h5>
+        {% if loans %}
+            <span style="font-size:0.82rem;color:var(--muted);">{{ loans|length }} application{{ loans|length|pluralize }}</span>
+        {% endif %}
+    </div>
+
+    {% if loans %}
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    {% if user.role == 'manager' %}<th>Applicant</th>{% endif %}
+                    <th>Product</th>
+                    <th>Amount</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    {% if user.role == 'manager' %}<th>Action</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td><span class="loan-id">#{{ loan.id }}</span></td>
+                    {% if user.role == 'manager' %}
+                    <td>
+                        <span class="applicant-chip">
+                            <i class="bi bi-person-fill" style="font-size:0.75rem;"></i>
+                            {{ loan.customer.username }}
+                        </span>
+                    </td>
+                    {% endif %}
+                    <td><span class="product-name">{{ loan.loan_product.name }}</span></td>
+                    <td><span class="amount-cell">${{ loan.amount }}</span></td>
+                    <td><span class="duration-cell"><i class="bi bi-calendar3 me-1" style="font-size:0.8rem;"></i>{{ loan.duration_months }} mo</span></td>
+                    <td>
+                        {% if loan.status == 'approved' %}
+                            <span class="badge badge-approved"><i class="bi bi-check-circle-fill me-1" style="font-size:0.7rem;"></i>Approved</span>
+                        {% elif loan.status == 'rejected' %}
+                            <span class="badge badge-rejected"><i class="bi bi-x-circle-fill me-1" style="font-size:0.7rem;"></i>Rejected</span>
+                        {% else %}
+                            <span class="badge badge-pending"><i class="bi bi-clock-fill me-1" style="font-size:0.7rem;"></i>Pending</span>
+                        {% endif %}
+                    </td>
+                    {% if user.role == 'manager' %}
+                    <td>
+                        <a href="/loans/review/{{ loan.id }}/" class="btn btn-primary btn-sm">
+                            Review <i class="bi bi-arrow-right ms-1" style="font-size:0.75rem;"></i>
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-file-earmark-plus"></i></div>
+        <h5>No applications yet</h5>
+        <p>{% if user.role == 'manager' %}There are no loan applications to review at this time.{% else %}You haven't submitted any loan applications yet.{% endif %}</p>
+        {% if user.role != 'manager' %}
+            <a href="/apply-loan/" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Apply for Your First Loan
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% if user.role != 'manager' and loans %}
+<div class="mt-3">
+    <a href="/apply-loan/" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Apply for New Loan
+    </a>
+</div>
+{% endif %}
 {% endblock %}

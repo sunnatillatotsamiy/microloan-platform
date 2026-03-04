@@ -1,84 +1,334 @@
 {% extends 'base.html' %}
+{% block title %}Review Application #{{ loan.id }} — MicroLoan{% endblock %}
+
+{% block extra_head %}
+<style>
+    .review-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 1.75rem;
+        align-items: start;
+    }
+    @media (max-width: 900px) { .review-layout { grid-template-columns: 1fr; } }
+
+    /* Detail card */
+    .detail-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+    }
+    .detail-card-header {
+        background: linear-gradient(135deg, var(--primary), #0e3260);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .detail-card-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 80% at 90% 50%, rgba(99,91,255,0.18) 0%, transparent 70%);
+    }
+    .detail-card-header > * { position: relative; z-index: 1; }
+    .loan-ref {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 0.35rem;
+    }
+    .detail-card-header h2 { font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.75rem; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.75);
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.28em 0.75em;
+        border-radius: 20px;
+    }
+    .meta-chip i { font-size: 0.75rem; }
+
+    /* Detail rows */
+    .detail-body { padding: 0; }
+    .detail-section-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        padding: 1.25rem 1.75rem 0.5rem;
+    }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        padding: 0 1.75rem 1.5rem;
+    }
+    @media (max-width: 540px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-item { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+    .detail-item:nth-last-child(-n+2) { border-bottom: none; }
+    .detail-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+    .detail-value { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .detail-value.amount { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+    .detail-value.rate { color: var(--accent2); font-weight: 700; }
+
+    /* Decision sidebar */
+    .decision-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 80px;
+    }
+    .decision-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .decision-header h5 {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .decision-header h5 i { color: var(--accent2); }
+    .decision-body { padding: 1.5rem; }
+
+    /* Status display */
+    .status-display {
+        text-align: center;
+        padding: 1.75rem 1rem;
+    }
+    .status-icon-wrap {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem;
+        margin: 0 auto 1rem;
+    }
+    .status-icon-wrap.approved { background: rgba(0,200,150,0.1); color: var(--accent); }
+    .status-icon-wrap.rejected { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .status-display h6 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
+    .status-display p { font-size: 0.83rem; color: var(--muted); margin: 0; }
+
+    /* Decision form */
+    .btn-approve {
+        width: 100%;
+        background: var(--accent);
+        border: none;
+        color: var(--primary);
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.8rem;
+        border-radius: 9px;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        box-shadow: 0 4px 14px rgba(0,200,150,0.25);
+        margin-bottom: 0.6rem;
+    }
+    .btn-approve:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,200,150,0.35); }
+    .btn-reject {
+        width: 100%;
+        background: #fff;
+        border: 1.5px solid #fca5a5;
+        color: #dc2626;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.8rem;
+        border-radius: 9px;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-reject:hover { background: #fef2f2; border-color: #ef4444; transform: translateY(-1px); }
+
+    /* Review history */
+    .history-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+    .history-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        font-family: 'Syne', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex; align-items: center; gap: 0.4rem;
+    }
+    .history-body { padding: 1.25rem 1.5rem; }
+    .history-entry {
+        display: flex;
+        gap: 0.85rem;
+        padding-bottom: 1.1rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1.1rem;
+    }
+    .history-entry:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .history-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent2), #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .history-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .history-meta strong { color: var(--text); }
+    .history-comment { font-size: 0.87rem; color: var(--text); margin: 0; line-height: 1.55; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4" style="max-width: 700px;">
-    <h2 class="mb-4">Review Loan Application #{{ loan.id }}</h2>
-
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            <strong>Applicant Details</strong>
-        </div>
-        <div class="card-body">
-            <table class="table table-sm mb-0">
-                <tr><td width="200"><strong>Applicant</strong></td><td>{{ loan.customer.username }}</td></tr>
-                <tr><td><strong>Loan Product</strong></td><td>{{ loan.loan_product.name }}</td></tr>
-                <tr><td><strong>Amount Requested</strong></td><td>${{ loan.amount }}</td></tr>
-                <tr><td><strong>Duration</strong></td><td>{{ loan.duration_months }} months</td></tr>
-                <tr><td><strong>Monthly Income</strong></td><td>${{ loan.monthly_income }}</td></tr>
-                <tr><td><strong>Interest Rate</strong></td><td>{{ loan.loan_product.interest_rate }}%</td></tr>
-                <tr><td><strong>Applied On</strong></td><td>{{ loan.created_at|date:"d M Y H:i" }}</td></tr>
-                <tr>
-                    <td><strong>Current Status</strong></td>
-                    <td>
-                        {% if loan.status == 'approved' %}
-                            <span class="badge bg-success">Approved</span>
-                        {% elif loan.status == 'rejected' %}
-                            <span class="badge bg-danger">Rejected</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            </table>
-        </div>
+<div class="page-header">
+    <div>
+        <h2>Review Application</h2>
+        <div class="subtitle">Loan #{{ loan.id }} · Submitted by {{ loan.customer.username }}</div>
     </div>
+    <a href="/my-loans/" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>All Applications
+    </a>
+</div>
 
-    {% if loan.status == 'pending' %}
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            <strong>Make Decision</strong>
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Comment (optional)</label>
-                    <textarea name="comment" class="form-control" rows="3"
-                        placeholder="Add a comment about your decision..."></textarea>
+<div class="review-layout">
+    <!-- Applicant Details -->
+    <div>
+        <div class="detail-card">
+            <div class="detail-card-header">
+                <div class="loan-ref">Loan Application</div>
+                <h2>#{{ loan.id }} — {{ loan.loan_product.name }}</h2>
+                <div class="header-meta">
+                    <span class="meta-chip"><i class="bi bi-person-fill"></i> {{ loan.customer.username }}</span>
+                    <span class="meta-chip"><i class="bi bi-calendar3"></i> {{ loan.created_at|date:"d M Y" }}</span>
+                    {% if loan.status == 'approved' %}
+                        <span class="badge badge-approved"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                    {% elif loan.status == 'rejected' %}
+                        <span class="badge badge-rejected"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                    {% else %}
+                        <span class="badge badge-pending"><i class="bi bi-clock-fill me-1"></i>Pending Review</span>
+                    {% endif %}
                 </div>
-                <div class="d-flex gap-3">
-                    <button type="submit" name="decision" value="approved"
-                        class="btn btn-success btn-lg flex-fill">
-                        Approve Loan
-                    </button>
-                    <button type="submit" name="decision" value="rejected"
-                        class="btn btn-danger btn-lg flex-fill">
-                        Reject Loan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        This loan has already been <strong>{{ loan.status }}</strong> and cannot be changed.
-    </div>
-    {% endif %}
-
-    {% if loan.reviews.all %}
-    <div class="card mt-4">
-        <div class="card-header"><strong>Review History</strong></div>
-        <div class="card-body">
-            {% for review in loan.reviews.all %}
-            <div class="mb-2">
-                <strong>{{ review.manager.username }}</strong>
-                <span class="text-muted small">{{ review.decision_date|date:"d M Y H:i" }}</span>
-                <p class="mb-0">{{ review.comment }}</p>
             </div>
-            {% endfor %}
+            <div class="detail-body">
+                <div class="detail-section-title">Financial Details</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Amount Requested</div>
+                        <div class="detail-value amount">${{ loan.amount }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Monthly Income</div>
+                        <div class="detail-value amount">${{ loan.monthly_income }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Duration</div>
+                        <div class="detail-value">{{ loan.duration_months }} months</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Interest Rate</div>
+                        <div class="detail-value rate">{{ loan.loan_product.interest_rate }}% p.a.</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Applied On</div>
+                        <div class="detail-value">{{ loan.created_at|date:"d M Y H:i" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Loan Product</div>
+                        <div class="detail-value">{{ loan.loan_product.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review History -->
+        {% if loan.reviews.all %}
+        <div class="history-card">
+            <div class="history-header">
+                <i class="bi bi-clock-history" style="color:var(--muted);"></i> Review History
+            </div>
+            <div class="history-body">
+                {% for review in loan.reviews.all %}
+                <div class="history-entry">
+                    <div class="history-avatar">{{ review.manager.username|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="history-meta">
+                            <strong>{{ review.manager.username }}</strong>
+                            &nbsp;·&nbsp; {{ review.decision_date|date:"d M Y H:i" }}
+                        </div>
+                        {% if review.comment %}
+                            <p class="history-comment">{{ review.comment }}</p>
+                        {% else %}
+                            <p class="history-comment" style="color:var(--muted);font-style:italic;">No comment left.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Decision Sidebar -->
+    <div class="decision-card">
+        <div class="decision-header">
+            <h5><i class="bi bi-check2-square"></i> Make a Decision</h5>
+        </div>
+        <div class="decision-body">
+            {% if loan.status == 'pending' %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="comment">Comment <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3"
+                            placeholder="Add a note about your decision..."></textarea>
+                    </div>
+                    <button type="submit" name="decision" value="approved" class="btn-approve">
+                        <i class="bi bi-check-lg"></i> Approve Loan
+                    </button>
+                    <button type="submit" name="decision" value="rejected" class="btn-reject">
+                        <i class="bi bi-x-lg"></i> Reject Loan
+                    </button>
+                </form>
+            {% else %}
+                <div class="status-display">
+                    {% if loan.status == 'approved' %}
+                        <div class="status-icon-wrap approved">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h6>Loan Approved</h6>
+                        <p>This application has been approved and cannot be changed.</p>
+                    {% else %}
+                        <div class="status-icon-wrap rejected">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </div>
+                        <h6>Loan Rejected</h6>
+                        <p>This application has been rejected and cannot be changed.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
-
-    <a href="/my-loans/" class="btn btn-secondary mt-3">Back to Loans</a>
 </div>
 {% endblock %}

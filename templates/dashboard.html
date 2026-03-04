@@ -1,9 +1,147 @@
 {% extends 'base.html' %}
+{% block title %}Dashboard — MicroLoan{% endblock %}
+
+{% block extra_head %}
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, #0e3260 70%, #1a1060 100%);
+        border-radius: 18px;
+        padding: 2.25rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2.5rem;
+    }
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 50% 80% at 90% 50%, rgba(99,91,255,0.2) 0%, transparent 70%);
+    }
+    .welcome-banner > * { position: relative; z-index: 1; }
+    .welcome-banner h2 {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 0.35rem;
+        letter-spacing: -0.3px;
+    }
+    .welcome-banner p { color: rgba(255,255,255,0.6); margin: 0; font-size: 0.92rem; }
+    .welcome-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .btn-banner-primary {
+        background: var(--accent);
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.5rem;
+        border-radius: 9px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 14px rgba(0,200,150,0.3);
+    }
+    .btn-banner-primary:hover { background: var(--accent-dark); color: var(--primary); transform: translateY(-1px); }
+    .btn-banner-secondary {
+        background: rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.85);
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 9px;
+        border: 1px solid rgba(255,255,255,0.15);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+    .btn-banner-secondary:hover { background: rgba(255,255,255,0.16); color: #fff; }
+
+    .section-label {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 1rem;
+    }
+    .quick-action-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem 1.25rem;
+        text-decoration: none;
+        display: block;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+    .quick-action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.09); border-color: transparent; text-decoration: none; }
+    .qa-icon {
+        width: 46px; height: 46px;
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    .qa-icon.green { background: rgba(0,200,150,0.1); color: var(--accent); }
+    .qa-icon.purple { background: rgba(99,91,255,0.1); color: var(--accent2); }
+    .qa-icon.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .quick-action-card h6 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
+    .quick-action-card p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+    .qa-arrow { color: var(--muted); font-size: 0.8rem; margin-top: 0.9rem; display: flex; align-items: center; gap: 0.25rem; font-size: 0.82rem; font-weight: 600; }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Dashboard</h2>
-<p>Welcome, {{ user.username }}</p>
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+            <h2>Welcome back, {{ user.username }} {% if user.role == 'manager' %}<span style="font-size:0.8em;background:rgba(0,200,150,0.15);color:var(--accent);border-radius:6px;padding:0.1em 0.5em;font-size:0.65em;vertical-align:middle;">Manager</span>{% endif %}</h2>
+            <p>Here's an overview of your MicroLoan account.</p>
+        </div>
+    </div>
+    <div class="welcome-actions">
+        {% if user.role == 'manager' %}
+            <a href="/my-loans/" class="btn-banner-primary"><i class="bi bi-list-check"></i> Review Applications</a>
+        {% else %}
+            <a href="/apply-loan/" class="btn-banner-primary"><i class="bi bi-plus-lg"></i> Apply for a Loan</a>
+            <a href="/my-loans/" class="btn-banner-secondary"><i class="bi bi-file-earmark-text"></i> View My Loans</a>
+        {% endif %}
+    </div>
+</div>
 
-<a href="/apply-loan/" class="btn btn-primary">Apply for Loan</a>
-<a href="/my-loans/" class="btn btn-secondary">My Loans</a>
+<!-- Quick Actions -->
+<div class="section-label">Quick Actions</div>
+<div class="row g-3 mb-4">
+    {% if user.role != 'manager' %}
+    <div class="col-sm-6 col-lg-4">
+        <a href="/apply-loan/" class="quick-action-card">
+            <div class="qa-icon green"><i class="bi bi-plus-circle"></i></div>
+            <h6>Apply for Loan</h6>
+            <p>Submit a new loan application with our step-by-step form.</p>
+            <div class="qa-arrow">Apply now <i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+    {% endif %}
+    <div class="col-sm-6 col-lg-4">
+        <a href="/my-loans/" class="quick-action-card">
+            <div class="qa-icon purple"><i class="bi bi-file-earmark-text"></i></div>
+            <h6>{% if user.role == 'manager' %}All Applications{% else %}My Loans{% endif %}</h6>
+            <p>{% if user.role == 'manager' %}View and manage all pending loan applications.{% else %}Track the status of all your submitted applications.{% endif %}</p>
+            <div class="qa-arrow">View all <i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <a href="/" class="quick-action-card">
+            <div class="qa-icon blue"><i class="bi bi-info-circle"></i></div>
+            <h6>Learn More</h6>
+            <p>Explore available loan products and see how MicroLoan works.</p>
+            <div class="qa-arrow">Explore <i class="bi bi-arrow-right"></i></div>
+        </a>
+    </div>
+</div>
 {% endblock %}

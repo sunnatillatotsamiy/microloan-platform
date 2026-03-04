@@ -1,15 +1,143 @@
 {% extends 'base.html' %}
+{% block title %}Sign In — MicroLoan{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-wrapper {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .auth-header {
+        background: linear-gradient(135deg, var(--primary), #0e3260);
+        padding: 2.5rem 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 80% at 80% 20%, rgba(99,91,255,0.2) 0%, transparent 70%);
+    }
+    .auth-header > * { position: relative; z-index: 1; }
+    .auth-logo {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    .auth-logo span { color: var(--accent); }
+    .auth-header h1 { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem; }
+    .auth-header p { font-size: 0.88rem; color: rgba(255,255,255,0.55); margin: 0; }
+    .auth-body { padding: 2.5rem; }
+    .auth-body .form-label { font-weight: 500; font-size: 0.85rem; color: #374151; }
+    .auth-body .form-control {
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        padding: 0.7rem 1rem;
+        font-size: 0.92rem;
+        background: var(--surface);
+        transition: all 0.18s;
+    }
+    .auth-body .form-control:focus {
+        border-color: var(--accent2);
+        background: #fff;
+        box-shadow: 0 0 0 3.5px rgba(99,91,255,0.12);
+    }
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap .bi {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.95rem;
+        z-index: 2;
+    }
+    .input-icon-wrap .form-control { padding-left: 2.4rem; }
+    .btn-auth {
+        width: 100%;
+        background: var(--accent2);
+        border: none;
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.8rem;
+        border-radius: 9px;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .btn-auth:hover { background: var(--accent2-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,91,255,0.35); }
+    .auth-footer { text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border); margin-top: 1.5rem; }
+    .auth-footer a { color: var(--accent2); font-weight: 600; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+    .auth-footer p { font-size: 0.87rem; color: var(--muted); margin: 0; }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Login</h2>
-<form method="POST">
-    {% csrf_token %}
-    <div class="mb-3">
-        <input type="text" name="username" class="form-control" placeholder="Username" required>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a class="auth-logo" href="/">Micro<span>Loan</span></a>
+            <h1>Welcome back</h1>
+            <p>Sign in to your account to continue</p>
+        </div>
+        <div class="auth-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger mb-4">
+                        <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="username">Username</label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-person"></i>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" autocomplete="username" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-icon-wrap">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-auth">
+                    Sign In <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="/register/">Create one — it's free</a></p>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <input type="password" name="password" class="form-control" placeholder="Password" required>
-    </div>
-    <button class="btn btn-success">Login</button>
-</form>
+</div>
 {% endblock %}

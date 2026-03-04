@@ -1,73 +1,320 @@
 {% extends 'base.html' %}
+{% block title %}Apply for a Loan — MicroLoan{% endblock %}
+
+{% block extra_head %}
+<style>
+    .apply-layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 1.75rem;
+        align-items: start;
+    }
+    @media (max-width: 900px) { .apply-layout { grid-template-columns: 1fr; } }
+
+    .form-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    }
+    .form-card-header {
+        background: linear-gradient(135deg, var(--primary), #0e3260);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .form-card-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 50% 80% at 90% 50%, rgba(99,91,255,0.18) 0%, transparent 70%);
+    }
+    .form-card-header > * { position: relative; z-index: 1; }
+    .form-card-header h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0 0 0.3rem; }
+    .form-card-header p { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin: 0; }
+    .form-card-body { padding: 2rem; }
+
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(99,91,255,0.1);
+        color: var(--accent2);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.3em 0.8em;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+    }
+
+    .product-info-box {
+        background: rgba(99,91,255,0.05);
+        border: 1px solid rgba(99,91,255,0.15);
+        border-radius: 12px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .product-info-box strong { font-family: 'Syne', sans-serif; font-size: 0.95rem; color: var(--primary); display: block; margin-bottom: 0.6rem; }
+    .product-info-row { display: flex; justify-content: space-between; font-size: 0.84rem; color: var(--muted); padding: 0.2rem 0; }
+    .product-info-row span:last-child { font-weight: 600; color: var(--text); }
+
+    .slider-wrap { padding: 0.25rem 0 0.5rem; }
+    .form-range {
+        width: 100%;
+        height: 5px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: linear-gradient(90deg, var(--accent2) var(--pct, 0%), var(--border) var(--pct, 0%));
+        border-radius: 5px;
+        outline: none;
+        cursor: pointer;
+    }
+    .form-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: var(--accent2);
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px var(--accent2), 0 2px 8px rgba(99,91,255,0.3);
+        cursor: pointer;
+    }
+    .form-range::-moz-range-thumb {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: var(--accent2);
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px var(--accent2);
+        cursor: pointer;
+    }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+    .slider-value {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Summary card */
+    .summary-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 80px;
+    }
+    .summary-header {
+        background: var(--surface);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .summary-header h5 {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .summary-header h5 i { color: var(--accent); }
+    .summary-body { padding: 1.5rem; }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.87rem;
+    }
+    .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .summary-row .label { color: var(--muted); }
+    .summary-row .value { font-weight: 700; color: var(--primary); font-family: 'Syne', sans-serif; }
+    .summary-row.highlight .value { color: var(--accent); font-size: 1.05rem; }
+    .summary-row.total .value { color: var(--accent2); font-size: 1.1rem; }
+    .summary-empty {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+    .summary-empty i { font-size: 2rem; color: var(--border); display: block; margin-bottom: 0.75rem; }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--accent2), #8b5cf6);
+        border: none;
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 0.9rem;
+        border-radius: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 16px rgba(99,91,255,0.3);
+    }
+    .submit-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99,91,255,0.35); }
+    .form-section-divider {
+        border: none;
+        border-top: 1px dashed var(--border);
+        margin: 1.75rem 0;
+    }
+    .field-group { margin-bottom: 1.4rem; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4" style="max-width: 600px;">
-    <h2 class="mb-4">Apply for Loan</h2>
-    <form method="POST" id="loanForm">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="form-label fw-bold">Loan Product</label>
-            <select name="loan_product" class="form-select" id="productSelect" required onchange="updateProductInfo()">
-                <option value="">-- Select a loan product --</option>
-                {% for product in products %}
-                    <option value="{{ product.id }}"
-                        data-rate="{{ product.interest_rate }}"
-                        data-min="{{ product.min_amount }}"
-                        data-max="{{ product.max_amount }}"
-                        data-dmin="{{ product.duration_min }}"
-                        data-dmax="{{ product.duration_max }}">
-                        {{ product.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div id="productInfo" class="alert alert-info d-none mb-4">
-            <strong id="productName"></strong><br>
-            Interest Rate: <span id="productRate"></span>% per year<br>
-            Amount Range: $<span id="productMin"></span> – $<span id="productMax"></span><br>
-            Duration: <span id="productDmin"></span> – <span id="productDmax"></span> months
-        </div>
-
-        <div class="mb-4" id="amountSection">
-            <label class="form-label fw-bold">Loan Amount: $<span id="amountDisplay">0</span></label>
-            <input type="range" class="form-range" id="amountSlider" min="0" max="100" value="0"
-                oninput="updateAmount(this.value)" disabled>
-            <input type="hidden" name="amount" id="amountInput">
-            <div class="d-flex justify-content-between text-muted small">
-                <span id="minLabel">Min: $0</span>
-                <span id="maxLabel">Max: $0</span>
-            </div>
-        </div>
-
-        <div class="mb-4" id="durationSection">
-            <label class="form-label fw-bold">Duration: <span id="durationDisplay">0</span> months</label>
-            <select name="duration" class="form-select" id="durationSelect" required onchange="updateSummary()" disabled>
-                <option value="">-- Select duration --</option>
-            </select>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label fw-bold">Monthly Income ($)</label>
-            <input type="number" name="income" class="form-control" placeholder="Enter your monthly income" min="1" required>
-        </div>
-
-        <div id="summary" class="alert alert-success d-none mb-4">
-            <h5>Loan Summary</h5>
-            <table class="table table-sm mb-0">
-                <tr><td>Loan Amount</td><td><strong>$<span id="sumAmount"></span></strong></td></tr>
-                <tr><td>Duration</td><td><strong><span id="sumDuration"></span> months</strong></td></tr>
-                <tr><td>Interest Rate</td><td><strong><span id="sumRate"></span>% per year</strong></td></tr>
-                <tr><td>Monthly Payment</td><td><strong>$<span id="sumMonthly"></span></strong></td></tr>
-                <tr><td>Total Repayment</td><td><strong>$<span id="sumTotal"></span></strong></td></tr>
-            </table>
-        </div>
-
-        <button class="btn btn-primary btn-lg w-100" type="submit">Submit Application</button>
-    </form>
+<div class="page-header">
+    <div>
+        <h2>Apply for a Loan</h2>
+        <div class="subtitle">Select a product, configure your terms, and submit your application.</div>
+    </div>
+    <a href="/my-loans/" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>My Loans
+    </a>
 </div>
 
+<div class="apply-layout">
+    <!-- Form -->
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2><i class="bi bi-file-earmark-plus me-2"></i>Loan Application</h2>
+            <p>Fill in the details below to submit your application</p>
+        </div>
+        <div class="form-card-body">
+            <form method="POST" id="loanForm">
+                {% csrf_token %}
+
+                <!-- Step 1: Product -->
+                <div class="step-badge"><i class="bi bi-1-circle-fill"></i>Choose a Product</div>
+                <div class="field-group">
+                    <label class="form-label" for="productSelect">Loan Product</label>
+                    <select name="loan_product" class="form-select" id="productSelect" required onchange="updateProductInfo()">
+                        <option value="">— Select a loan product —</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}"
+                                data-rate="{{ product.interest_rate }}"
+                                data-min="{{ product.min_amount }}"
+                                data-max="{{ product.max_amount }}"
+                                data-dmin="{{ product.duration_min }}"
+                                data-dmax="{{ product.duration_max }}">
+                                {{ product.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="productInfo" class="product-info-box d-none">
+                    <strong id="productName"></strong>
+                    <div class="product-info-row"><span>Interest Rate</span><span id="productRate"></span></div>
+                    <div class="product-info-row"><span>Amount Range</span><span id="productAmountRange"></span></div>
+                    <div class="product-info-row"><span>Duration</span><span id="productDurRange"></span></div>
+                </div>
+
+                <hr class="form-section-divider">
+
+                <!-- Step 2: Amount -->
+                <div class="step-badge"><i class="bi bi-2-circle-fill"></i>Set Your Amount</div>
+                <div class="field-group" id="amountSection">
+                    <label class="form-label">Loan Amount</label>
+                    <div class="slider-value">$<span id="amountDisplay">0</span></div>
+                    <div class="slider-wrap">
+                        <input type="range" class="form-range" id="amountSlider" min="0" max="100" value="0"
+                            oninput="updateAmount(this.value)" disabled>
+                        <div class="slider-labels">
+                            <span id="minLabel">$0</span>
+                            <span id="maxLabel">$0</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="amount" id="amountInput">
+                </div>
+
+                <hr class="form-section-divider">
+
+                <!-- Step 3: Duration -->
+                <div class="step-badge"><i class="bi bi-3-circle-fill"></i>Choose Duration</div>
+                <div class="field-group" id="durationSection">
+                    <label class="form-label" for="durationSelect">Repayment Duration</label>
+                    <select name="duration" class="form-select" id="durationSelect" required onchange="updateSummary()" disabled>
+                        <option value="">— Select duration —</option>
+                    </select>
+                </div>
+
+                <hr class="form-section-divider">
+
+                <!-- Step 4: Income -->
+                <div class="step-badge"><i class="bi bi-4-circle-fill"></i>Confirm Income</div>
+                <div class="field-group">
+                    <label class="form-label" for="income">Monthly Income (USD)</label>
+                    <div style="position:relative;">
+                        <span style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);color:#94a3b8;font-weight:600;">$</span>
+                        <input type="number" name="income" id="income" class="form-control" style="padding-left:1.75rem;" placeholder="0.00" min="1" required>
+                    </div>
+                    <div class="form-text mt-1">Used to assess your repayment capacity.</div>
+                </div>
+
+                <button type="submit" class="submit-btn mt-2">
+                    <i class="bi bi-send-fill"></i> Submit Application
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-card">
+        <div class="summary-header">
+            <h5><i class="bi bi-calculator"></i> Loan Summary</h5>
+        </div>
+        <div class="summary-body">
+            <div id="summaryEmpty" class="summary-empty">
+                <i class="bi bi-sliders"></i>
+                Configure your loan to see a live summary
+            </div>
+            <div id="summaryContent" class="d-none">
+                <div class="summary-row">
+                    <span class="label">Loan Amount</span>
+                    <span class="value">$<span id="sumAmount">—</span></span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Duration</span>
+                    <span class="value"><span id="sumDuration">—</span> months</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Interest Rate</span>
+                    <span class="value"><span id="sumRate">—</span>% p.a.</span>
+                </div>
+                <div class="summary-row highlight">
+                    <span class="label">Monthly Payment</span>
+                    <span class="value">$<span id="sumMonthly">—</span></span>
+                </div>
+                <div class="summary-row total">
+                    <span class="label">Total Repayment</span>
+                    <span class="value">$<span id="sumTotal">—</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
+function updateSliderBackground(slider) {
+    const min = parseFloat(slider.min), max = parseFloat(slider.max), val = parseFloat(slider.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.setProperty('--pct', pct + '%');
+    slider.style.background = `linear-gradient(90deg, var(--accent2) ${pct}%, var(--border) ${pct}%)`;
+}
+
 function updateProductInfo() {
     const select = document.getElementById('productSelect');
     const option = select.options[select.selectedIndex];
@@ -77,6 +324,7 @@ function updateProductInfo() {
         info.classList.add('d-none');
         document.getElementById('amountSlider').disabled = true;
         document.getElementById('durationSelect').disabled = true;
+        hideSummary();
         return;
     }
 
@@ -87,27 +335,22 @@ function updateProductInfo() {
     const dmax = parseInt(option.dataset.dmax);
 
     document.getElementById('productName').textContent = option.text;
-    document.getElementById('productRate').textContent = rate;
-    document.getElementById('productMin').textContent = min;
-    document.getElementById('productMax').textContent = max;
-    document.getElementById('productDmin').textContent = dmin;
-    document.getElementById('productDmax').textContent = dmax;
+    document.getElementById('productRate').textContent = rate + '% per year';
+    document.getElementById('productAmountRange').textContent = '$' + min.toLocaleString() + ' – $' + max.toLocaleString();
+    document.getElementById('productDurRange').textContent = dmin + ' – ' + dmax + ' months';
     info.classList.remove('d-none');
 
-    // Update slider
     const slider = document.getElementById('amountSlider');
-    slider.min = min;
-    slider.max = max;
-    slider.value = min;
+    slider.min = min; slider.max = max; slider.value = min;
     slider.disabled = false;
-    document.getElementById('minLabel').textContent = 'Min: $' + min;
-    document.getElementById('maxLabel').textContent = 'Max: $' + max;
-    document.getElementById('amountDisplay').textContent = min;
+    updateSliderBackground(slider);
+    document.getElementById('minLabel').textContent = '$' + min.toLocaleString();
+    document.getElementById('maxLabel').textContent = '$' + max.toLocaleString();
+    document.getElementById('amountDisplay').textContent = min.toLocaleString();
     document.getElementById('amountInput').value = min;
 
-    // Update duration dropdown
     const dSelect = document.getElementById('durationSelect');
-    dSelect.innerHTML = '<option value="">-- Select duration --</option>';
+    dSelect.innerHTML = '<option value="">— Select duration —</option>';
     for (let m = dmin; m <= dmax; m++) {
         const opt = document.createElement('option');
         opt.value = m;
@@ -115,14 +358,20 @@ function updateProductInfo() {
         dSelect.appendChild(opt);
     }
     dSelect.disabled = false;
-
     updateSummary();
 }
 
 function updateAmount(val) {
-    document.getElementById('amountDisplay').textContent = parseFloat(val).toFixed(0);
+    const num = parseFloat(val);
+    document.getElementById('amountDisplay').textContent = num.toLocaleString();
     document.getElementById('amountInput').value = val;
+    updateSliderBackground(document.getElementById('amountSlider'));
     updateSummary();
+}
+
+function hideSummary() {
+    document.getElementById('summaryEmpty').classList.remove('d-none');
+    document.getElementById('summaryContent').classList.add('d-none');
 }
 
 function updateSummary() {
@@ -130,26 +379,22 @@ function updateSummary() {
     const option = select.options[select.selectedIndex];
     const amount = parseFloat(document.getElementById('amountInput').value);
     const duration = parseInt(document.getElementById('durationSelect').value);
-    const summary = document.getElementById('summary');
 
-    document.getElementById('durationDisplay').textContent = duration || 0;
-
-    if (!option.value || !amount || !duration) {
-        summary.classList.add('d-none');
-        return;
-    }
+    if (!option.value || !amount || !duration) { hideSummary(); return; }
 
     const rate = parseFloat(option.dataset.rate);
     const monthlyRate = rate / 100 / 12;
     const monthly = amount * monthlyRate * Math.pow(1 + monthlyRate, duration) / (Math.pow(1 + monthlyRate, duration) - 1);
     const total = monthly * duration;
 
-    document.getElementById('sumAmount').textContent = amount.toFixed(2);
+    document.getElementById('sumAmount').textContent = amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('sumDuration').textContent = duration;
     document.getElementById('sumRate').textContent = rate;
-    document.getElementById('sumMonthly').textContent = monthly.toFixed(2);
-    document.getElementById('sumTotal').textContent = total.toFixed(2);
-    summary.classList.remove('d-none');
+    document.getElementById('sumMonthly').textContent = monthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('sumTotal').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    document.getElementById('summaryEmpty').classList.add('d-none');
+    document.getElementById('summaryContent').classList.remove('d-none');
 }
 </script>
 {% endblock %}
