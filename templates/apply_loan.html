@@ -1,37 +1,155 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<h2>Apply for Loan</h2>
+<div class="container mt-4" style="max-width: 600px;">
+    <h2 class="mb-4">Apply for Loan</h2>
+    <form method="POST" id="loanForm">
+        {% csrf_token %}
 
-<form method="POST">
-    {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label fw-bold">Loan Product</label>
+            <select name="loan_product" class="form-select" id="productSelect" required onchange="updateProductInfo()">
+                <option value="">-- Select a loan product --</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}"
+                        data-rate="{{ product.interest_rate }}"
+                        data-min="{{ product.min_amount }}"
+                        data-max="{{ product.max_amount }}"
+                        data-dmin="{{ product.duration_min }}"
+                        data-dmax="{{ product.duration_max }}">
+                        {{ product.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <div class="mb-3">
-        <label>Loan Product</label>
-        <select name="loan_product" class="form-control" required>
-            {% for product in products %}
-                <option value="{{ product.id }}">
-                    {{ product.name }} ({{ product.interest_rate }}%)
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <div id="productInfo" class="alert alert-info d-none mb-4">
+            <strong id="productName"></strong><br>
+            Interest Rate: <span id="productRate"></span>% per year<br>
+            Amount Range: $<span id="productMin"></span> – $<span id="productMax"></span><br>
+            Duration: <span id="productDmin"></span> – <span id="productDmax"></span> months
+        </div>
 
-    <div class="mb-3">
-        <label>Amount</label>
-        <input type="number" name="amount" class="form-control" required>
-    </div>
+        <div class="mb-4" id="amountSection">
+            <label class="form-label fw-bold">Loan Amount: $<span id="amountDisplay">0</span></label>
+            <input type="range" class="form-range" id="amountSlider" min="0" max="100" value="0"
+                oninput="updateAmount(this.value)" disabled>
+            <input type="hidden" name="amount" id="amountInput">
+            <div class="d-flex justify-content-between text-muted small">
+                <span id="minLabel">Min: $0</span>
+                <span id="maxLabel">Max: $0</span>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label>Duration (months)</label>
-        <input type="number" name="duration" class="form-control" required>
-    </div>
+        <div class="mb-4" id="durationSection">
+            <label class="form-label fw-bold">Duration: <span id="durationDisplay">0</span> months</label>
+            <select name="duration" class="form-select" id="durationSelect" required onchange="updateSummary()" disabled>
+                <option value="">-- Select duration --</option>
+            </select>
+        </div>
 
-    <div class="mb-3">
-        <label>Monthly Income</label>
-        <input type="number" name="income" class="form-control" required>
-    </div>
+        <div class="mb-4">
+            <label class="form-label fw-bold">Monthly Income ($)</label>
+            <input type="number" name="income" class="form-control" placeholder="Enter your monthly income" min="1" required>
+        </div>
 
-    <button class="btn btn-primary">Submit Application</button>
-</form>
+        <div id="summary" class="alert alert-success d-none mb-4">
+            <h5>Loan Summary</h5>
+            <table class="table table-sm mb-0">
+                <tr><td>Loan Amount</td><td><strong>$<span id="sumAmount"></span></strong></td></tr>
+                <tr><td>Duration</td><td><strong><span id="sumDuration"></span> months</strong></td></tr>
+                <tr><td>Interest Rate</td><td><strong><span id="sumRate"></span>% per year</strong></td></tr>
+                <tr><td>Monthly Payment</td><td><strong>$<span id="sumMonthly"></span></strong></td></tr>
+                <tr><td>Total Repayment</td><td><strong>$<span id="sumTotal"></span></strong></td></tr>
+            </table>
+        </div>
+
+        <button class="btn btn-primary btn-lg w-100" type="submit">Submit Application</button>
+    </form>
+</div>
+
+<script>
+function updateProductInfo() {
+    const select = document.getElementById('productSelect');
+    const option = select.options[select.selectedIndex];
+    const info = document.getElementById('productInfo');
+
+    if (!option.value) {
+        info.classList.add('d-none');
+        document.getElementById('amountSlider').disabled = true;
+        document.getElementById('durationSelect').disabled = true;
+        return;
+    }
+
+    const rate = option.dataset.rate;
+    const min = parseFloat(option.dataset.min);
+    const max = parseFloat(option.dataset.max);
+    const dmin = parseInt(option.dataset.dmin);
+    const dmax = parseInt(option.dataset.dmax);
+
+    document.getElementById('productName').textContent = option.text;
+    document.getElementById('productRate').textContent = rate;
+    document.getElementById('productMin').textContent = min;
+    document.getElementById('productMax').textContent = max;
+    document.getElementById('productDmin').textContent = dmin;
+    document.getElementById('productDmax').textContent = dmax;
+    info.classList.remove('d-none');
+
+    // Update slider
+    const slider = document.getElementById('amountSlider');
+    slider.min = min;
+    slider.max = max;
+    slider.value = min;
+    slider.disabled = false;
+    document.getElementById('minLabel').textContent = 'Min: $' + min;
+    document.getElementById('maxLabel').textContent = 'Max: $' + max;
+    document.getElementById('amountDisplay').textContent = min;
+    document.getElementById('amountInput').value = min;
+
+    // Update duration dropdown
+    const dSelect = document.getElementById('durationSelect');
+    dSelect.innerHTML = '<option value="">-- Select duration --</option>';
+    for (let m = dmin; m <= dmax; m++) {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m + ' months';
+        dSelect.appendChild(opt);
+    }
+    dSelect.disabled = false;
+
+    updateSummary();
+}
+
+function updateAmount(val) {
+    document.getElementById('amountDisplay').textContent = parseFloat(val).toFixed(0);
+    document.getElementById('amountInput').value = val;
+    updateSummary();
+}
+
+function updateSummary() {
+    const select = document.getElementById('productSelect');
+    const option = select.options[select.selectedIndex];
+    const amount = parseFloat(document.getElementById('amountInput').value);
+    const duration = parseInt(document.getElementById('durationSelect').value);
+    const summary = document.getElementById('summary');
+
+    document.getElementById('durationDisplay').textContent = duration || 0;
+
+    if (!option.value || !amount || !duration) {
+        summary.classList.add('d-none');
+        return;
+    }
+
+    const rate = parseFloat(option.dataset.rate);
+    const monthlyRate = rate / 100 / 12;
+    const monthly = amount * monthlyRate * Math.pow(1 + monthlyRate, duration) / (Math.pow(1 + monthlyRate, duration) - 1);
+    const total = monthly * duration;
+
+    document.getElementById('sumAmount').textContent = amount.toFixed(2);
+    document.getElementById('sumDuration').textContent = duration;
+    document.getElementById('sumRate').textContent = rate;
+    document.getElementById('sumMonthly').textContent = monthly.toFixed(2);
+    document.getElementById('sumTotal').textContent = total.toFixed(2);
+    summary.classList.remove('d-none');
+}
+</script>
 {% endblock %}
