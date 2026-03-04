@@ -113,9 +113,7 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          key_path: ""
-          debug: true
+          password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ~/microloan-platform
             docker compose pull
