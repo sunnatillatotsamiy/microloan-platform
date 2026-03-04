@@ -116,8 +116,9 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ~/microloan-platform
+            git pull origin main
             docker compose pull
-            docker compose up -d
+            docker compose up -d --build
             docker compose exec -T web python manage.py migrate --noinput
             docker compose exec -T web python manage.py collectstatic --noinput
             docker image prune -f
