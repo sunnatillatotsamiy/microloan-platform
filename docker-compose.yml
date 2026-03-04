@@ -20,7 +20,7 @@ services:
       retries: 5
 
   web:
-    image: freddiestephenson/microloan-platform:latest
+    image: freddiestephenson/microloan-backend:latest
     container_name: microloan_web
     restart: always
     depends_on:
