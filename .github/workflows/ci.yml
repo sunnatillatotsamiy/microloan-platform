@@ -52,7 +52,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          
+
       - name: Run flake8
         run: |
           flake8 . --count --max-line-length=120 \
@@ -114,13 +114,12 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key_path: ""
+          debug: true
           script: |
             cd ~/microloan-platform
             docker compose pull
-            docker compose down
             docker compose up -d
-            sleep 15
             docker compose exec -T web python manage.py migrate --noinput
             docker compose exec -T web python manage.py collectstatic --noinput
             docker image prune -f
-            echo "Deployment completed!"
