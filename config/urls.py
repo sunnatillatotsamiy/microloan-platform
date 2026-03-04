@@ -1,4 +1,5 @@
 from django.contrib import admin
+from loans.views import apply_loan_view, my_loans_view, manager_review_view
 from django.urls import path, include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -19,7 +20,7 @@ from users.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
+    path('loans/review/<int:loan_id>/', manager_review_view),
     # Web pages
     path('', home_view),
     path('register/', register_view),   

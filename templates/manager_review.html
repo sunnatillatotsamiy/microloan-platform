@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width: 700px;">
+    <h2 class="mb-4">Review Loan Application #{{ loan.id }}</h2>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <strong>Applicant Details</strong>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm mb-0">
+                <tr><td width="200"><strong>Applicant</strong></td><td>{{ loan.customer.username }}</td></tr>
+                <tr><td><strong>Loan Product</strong></td><td>{{ loan.loan_product.name }}</td></tr>
+                <tr><td><strong>Amount Requested</strong></td><td>${{ loan.amount }}</td></tr>
+                <tr><td><strong>Duration</strong></td><td>{{ loan.duration_months }} months</td></tr>
+                <tr><td><strong>Monthly Income</strong></td><td>${{ loan.monthly_income }}</td></tr>
+                <tr><td><strong>Interest Rate</strong></td><td>{{ loan.loan_product.interest_rate }}%</td></tr>
+                <tr><td><strong>Applied On</strong></td><td>{{ loan.created_at|date:"d M Y H:i" }}</td></tr>
+                <tr>
+                    <td><strong>Current Status</strong></td>
+                    <td>
+                        {% if loan.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif loan.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    {% if loan.status == 'pending' %}
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <strong>Make Decision</strong>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Comment (optional)</label>
+                    <textarea name="comment" class="form-control" rows="3"
+                        placeholder="Add a comment about your decision..."></textarea>
+                </div>
+                <div class="d-flex gap-3">
+                    <button type="submit" name="decision" value="approved"
+                        class="btn btn-success btn-lg flex-fill">
+                        Approve Loan
+                    </button>
+                    <button type="submit" name="decision" value="rejected"
+                        class="btn btn-danger btn-lg flex-fill">
+                        Reject Loan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        This loan has already been <strong>{{ loan.status }}</strong> and cannot be changed.
+    </div>
+    {% endif %}
+
+    {% if loan.reviews.all %}
+    <div class="card mt-4">
+        <div class="card-header"><strong>Review History</strong></div>
+        <div class="card-body">
+            {% for review in loan.reviews.all %}
+            <div class="mb-2">
+                <strong>{{ review.manager.username }}</strong>
+                <span class="text-muted small">{{ review.decision_date|date:"d M Y H:i" }}</span>
+                <p class="mb-0">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <a href="/my-loans/" class="btn btn-secondary mt-3">Back to Loans</a>
+</div>
+{% endblock %}
