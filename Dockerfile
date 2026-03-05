@@ -1,4 +1,4 @@
-# ------- STAGE 1: Builder -------
+
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
@@ -15,7 +15,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-# ------- STAGE 2: Final -------
 FROM python:3.12-slim
 
 WORKDIR /app
